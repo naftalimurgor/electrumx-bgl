@@ -1,6 +1,5 @@
 FROM python:3.10-slim
 
-# Install build tools and LevelDB dev headers
 RUN apt-get update && apt-get install -y \
     build-essential \
     libssl-dev \
@@ -11,18 +10,15 @@ RUN apt-get update && apt-get install -y \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
-WORKDIR /electrumx
+WORKDIR /app
 
-# Copy and install requirements
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy rest of the app
 COPY . .
 
-# Expose ElectrumX ports
+WORKDIR /app/electrumx
+
 EXPOSE 50001 50002
 
-# Start ElectrumX server
 CMD ["python3", "-m", "electrumx.server.controller"]
