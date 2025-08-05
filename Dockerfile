@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     libevent-dev \
     && rm -rf /var/lib/apt/lists/*
 
-pip freeze > requirements.txt
+RUN pip freeze > requirements.txt
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
