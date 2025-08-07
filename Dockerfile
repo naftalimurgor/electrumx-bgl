@@ -21,4 +21,4 @@ WORKDIR /app/electrumx
 
 EXPOSE 50001 50002
 
-CMD ["python3", "-m", "electrumx.server.controller"]
+CMD ["python3", "-m", "electrumx_server"]
