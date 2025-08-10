@@ -4,6 +4,13 @@ Quickly spin up a Bitgesell Electrumx server ✨
 
 <img src="logo.png" height="50%" width="100%" />
 
+Suitable for these usecases:
+- Use as-is
+- Basis for Electrum Desktop wallet fork for Bitgesell- Use for SPV wallets etc
+- Currently powers the Address API for this [Bitgesell Explorer](https://bgl.sevaultwallet.com) for querying Bitgesell Address balances.
+
+
+
 ```
 License: MIT  
 Original Author: Neil Booth  
@@ -217,3 +224,5 @@ Expected response:
 ```json
 {"id":1,"result":["ElectrumX X.Y.Z", "1.4"]}
 ```
+
+`LICENSE: MIT`
