@@ -1,35 +1,35 @@
-# ElectrumX BGL - python electrum server for Bitgesell
+# ElectrumX BGL — Python Electrum Server for Bitgesell
 
-<img src="Icon.png" style="height: 60px;" />
+Quickly spin up a Bitgesell Electrumx server ✨
+
+<img src="logo.png" height="50%" width="100%" />
 
 ```
-Licence: MIT
-Original Author: Neil Booth
-Current Maintainers: Sevault Wallet Maintainers, murgornaftali[at]gmail.com
+License: MIT  
+Original Author: Neil Booth  
+Current Maintainers: Sevault Wallet Maintainers, murgornaftali[at]gmail.com  
 Language: Python (>= 3.10)
 ```
 
+This project is a fork of [kyuupichan/electrumx](https://github.com/kyuupichan/electrumx) with added support for **Bitgesell**.
 
-This project is a fork of [kyuupichan/electrumx](https://github.com/kyuupichan/electrumx) with an added support for Bitgesell
+ElectrumX allows users to run their own Electrum server. It connects to a full node and indexes the blockchain, allowing efficient querying of address history. The server can be exposed publicly and joined to the global Electrum network via peer discovery.
 
-ElectrumX allows users to run their own Electrum server. It connects to your
-full node and indexes the blockchain, allowing efficient querying of the history of
-arbitrary addresses. The server can be exposed publicly, and joined to the public network
-of servers via peer discovery. As of May 2020, a significant chunk of the public
-Electrum server network runs ElectrumX.
+As of May 2020, a significant portion of the public Electrum network runs ElectrumX.
 
-### Documentation
+---
 
-See [readthedocs](https://electrumx-spesmilo.readthedocs.io).
+## 📚 Documentation
 
-### Deployment
-This Electrumx server implementation currently powers this [Bitgesell Explorer](https://bgl.sevaultwallet.com)
+See [ElectrumX ReadTheDocs](https://electrumx-spesmilo.readthedocs.io).
 
-Deployment with Docker:
+---
 
-* `electrumx.conf` (config file)
-* `Dockerfile` (for containerized deployment)
-* `docker run` command
+## 🚀 Deployment
+
+This ElectrumX implementation currently powers the [Bitgesell Explorer](https://bgl.sevaultwallet.com).
+
+You can deploy it with **Docker** or as a **systemd service**.
 
 ---
 
@@ -63,39 +63,49 @@ BANNER_FILE = /electrumx/banner
 LOG_LEVEL = info
 ```
 
+---
+
 ## ✅ 2. `Dockerfile`
 
 Place this in the root of the ElectrumX fork:
 
-```Dockerfile
+```sh
 FROM python:3.10-slim
 
 RUN apt-get update && apt-get install -y \
     build-essential \
     libssl-dev \
     libevent-dev \
+    libleveldb-dev \
+    python3-dev \
+    gcc \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Install ElectrumX dependencies
+WORKDIR /app
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy your ElectrumX code
-COPY . /electrumx
-WORKDIR /electrumx
+COPY . .
+
+WORKDIR /app
 
 EXPOSE 50001 50002
 
-CMD ["python3", "-m", "electrumx.server.controller"]
+CMD ["start"]
+
 ```
 
-## ✅ 3. Docker Build & Run
+---
+
+## ✅ 3. Build & Run with Docker
 
 ```bash
 docker build -t electrumx-bgl .
 ```
 
-Then run it:
+Run the container:
 
 ```bash
 docker run -d \
@@ -109,19 +119,94 @@ docker run -d \
   electrumx-bgl
 ```
 
-Replace `$HOME/electrumx/...` with your actual file paths.
+---
+
+## ✅ 4. `start-electrumx.sh` (Systemd Startup Script)
+
+Save this script:
+
+```bash
+#!/bin/bash
+
+# Activate virtual environment
+source "$(pwd)/venv/bin/activate"
+
+# --- Core ElectrumX Settings ---
+export COIN=Bitgesell
+export ELECTRUMX_NETWORK=mainnet
+
+# Bitgesell Node URL
+export DAEMON_URL=http://localuser:rpcpassword@HOST:PORT
+
+# Database directory
+export DB_DIRECTORY="$(pwd)/db"
+export SERVICES=tcp://0.0.0.0:50001
+
+# --- Memory Optimization ---
+export DB_CACHE=400MB
+export CACHE_MB=50
+export MAX_SEND=1000000
+export REORG_LIMIT=50
+export BATCHES=10
+
+# Logging
+export LOG_LEVEL=info
+
+# Run ElectrumX
+python3 electrumx_server
+```
+
+Make executable:
+
+```bash
+chmod +x start-electrumx.sh
+```
 
 ---
 
-## 🧪 Test Connection
+## ✅ 5. `systemd` Service File
 
-From your host or client:
+Create `/etc/systemd/system/electrumx.service`:
+
+```ini
+[Unit]
+Description=ElectrumX Server (Bitgesell)
+After=network.target
+
+[Service]
+User=your-username
+Group=your-username
+ExecStart=/path/to/start-electrumx.sh
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=electrumx
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable electrumx
+sudo systemctl start electrumx
+```
+
+---
+
+## 🧪 Testing the Server
+
+Check if TCP port is open:
 
 ```bash
 nc your-vps-ip 50001
 ```
 
-Send:
+Send JSON request:
 
 ```json
 {"id":1,"method":"server.version","params":["2.9.0", "1.4"]}
@@ -132,5 +217,3 @@ Expected response:
 ```json
 {"id":1,"result":["ElectrumX X.Y.Z", "1.4"]}
 ```
-
-
