@@ -15,10 +15,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy ElectrumX code and startup script
 COPY . .
-
-WORKDIR /app/electrumx
+COPY start-electrumx.sh /usr/local/bin/start-electrumx.sh
+RUN chmod +x /usr/local/bin/start-electrumx.sh
 
 EXPOSE 50001 50002
 
-CMD ["python3", "-m", "electrumx_server"]
+ENTRYPOINT ["start-electrumx.sh"]
